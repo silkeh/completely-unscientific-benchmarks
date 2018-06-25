@@ -25,31 +25,25 @@ type Tree struct {
 }
 
 func (t *Tree) HasValue(v int) bool {
-	splitted := split(t.Root, v)
-	res := splitted.Equal != nil
-	t.Root = merge3(splitted.Lower, splitted.Equal, splitted.Greater)
+	lower, equal, greater := split(t.Root, v)
+	res := equal != nil
+	t.Root = merge3(lower, equal, greater)
 	return res
 }
 
 func (t *Tree) Insert(v int) error {
-	splitted := split(t.Root, v)
-	if splitted.Equal == nil {
-		splitted.Equal = NewNode(v)
+	lower, equal, greater := split(t.Root, v)
+	if equal == nil {
+		equal = NewNode(v)
 	}
-	t.Root = merge3(splitted.Lower, splitted.Equal, splitted.Greater)
+	t.Root = merge3(lower, equal, greater)
 	return nil
 }
 
 func (t *Tree) Erase(v int) error {
-	splitted := split(t.Root, v)
-	t.Root = merge(splitted.Lower, splitted.Greater)
+	lower, _, greater := split(t.Root, v)
+	t.Root = merge(lower, greater)
 	return nil
-}
-
-type SplitResult struct {
-	Lower   *Node
-	Equal   *Node
-	Greater *Node
 }
 
 func merge(lower, greater *Node) *Node {
@@ -91,10 +85,11 @@ func splitBinary(original *Node, value int) (*Node, *Node) {
 	return splitPair0, original
 }
 
-func split(original *Node, value int) SplitResult {
-	lower, equalGreater := splitBinary(original, value)
-	equal, greater := splitBinary(equalGreater, value+1)
-	return SplitResult{lower, equal, greater}
+func split(original *Node, value int) (lower, equal, greater *Node) {
+	var equalGreater *Node
+	lower, equalGreater = splitBinary(original, value)
+	equal, greater = splitBinary(equalGreater, value+1)
+	return
 }
 
 func main() {
