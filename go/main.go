@@ -6,18 +6,40 @@ import (
 )
 
 type Node struct {
-	X        int
-	Y        int
-	Left     *Node
-	Right    *Node
+	X     int
+	Y     int
+	Left  *Node
+	Right *Node
 }
 
 func NewNode(v int) *Node {
-	y := rand.Int()
 	return &Node{
-		X:        v,
-		Y:        y,
+		X: v,
+		Y: rand.Int(),
 	}
+}
+
+func (n *Node) split(value int) (lower, equal, greater *Node) {
+	var equalGreater *Node
+	lower, equalGreater = n.splitBinary(value)
+	equal, greater = equalGreater.splitBinary(value + 1)
+	return
+}
+
+func (n *Node) splitBinary(value int) (*Node, *Node) {
+	if n == nil {
+		return nil, nil
+	}
+
+	if n.X < value {
+		splitPair0, splitPair1 := n.Right.splitBinary(value)
+		n.Right = splitPair0
+		return n, splitPair1
+	}
+
+	splitPair0, splitPair1 := n.Left.splitBinary(value)
+	n.Left = splitPair1
+	return splitPair0, n
 }
 
 type Tree struct {
@@ -25,14 +47,14 @@ type Tree struct {
 }
 
 func (t *Tree) HasValue(v int) bool {
-	lower, equal, greater := split(t.Root, v)
+	lower, equal, greater := t.Root.split(v)
 	res := equal != nil
 	t.Root = merge3(lower, equal, greater)
 	return res
 }
 
 func (t *Tree) Insert(v int) error {
-	lower, equal, greater := split(t.Root, v)
+	lower, equal, greater := t.Root.split(v)
 	if equal == nil {
 		equal = NewNode(v)
 	}
@@ -41,7 +63,7 @@ func (t *Tree) Insert(v int) error {
 }
 
 func (t *Tree) Erase(v int) error {
-	lower, _, greater := split(t.Root, v)
+	lower, _, greater := t.Root.split(v)
 	t.Root = merge(lower, greater)
 	return nil
 }
@@ -67,29 +89,6 @@ func merge(lower, greater *Node) *Node {
 
 func merge3(lower, equal, greater *Node) *Node {
 	return merge(merge(lower, equal), greater)
-}
-
-func splitBinary(original *Node, value int) (*Node, *Node) {
-	if original == nil {
-		return nil, nil
-	}
-
-	if original.X < value {
-		splitPair0, splitPair1 := splitBinary(original.Right, value)
-		original.Right = splitPair0
-		return original, splitPair1
-	}
-
-	splitPair0, splitPair1 := splitBinary(original.Left, value)
-	original.Left = splitPair1
-	return splitPair0, original
-}
-
-func split(original *Node, value int) (lower, equal, greater *Node) {
-	var equalGreater *Node
-	lower, equalGreater = splitBinary(original, value)
-	equal, greater = splitBinary(equalGreater, value+1)
-	return
 }
 
 func main() {
